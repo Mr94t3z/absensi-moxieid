@@ -10,6 +10,7 @@ import {
 } from "../lib/ui.js";
 import { StackClient } from "@stackso/js-core";
 import { format, toZonedTime } from 'date-fns-tz';
+import { addDays } from 'date-fns';
 import dotenv from 'dotenv';
 
 // Uncomment this packages to tested on local server
@@ -114,6 +115,55 @@ app.frame('/absen/:currentDate', async (c) => {
   const { fid, username, verifiedAddresses } = c.var.interactor || {};
   const eth_address = verifiedAddresses?.ethAddresses[0] || '';
 
+  // Get the current Indonesian time (Asia/Jakarta)
+  const now = new Date();
+  const timeZone = 'Asia/Jakarta';
+  const zonedTime = toZonedTime(now, timeZone);
+  const currentHour = zonedTime.getHours();
+  const currentMinute = zonedTime.getMinutes();
+  
+  // Define the start and end of the time window
+  const startHour = 7; // 07:00 AM
+  const endHour = 6;   // 06:00 AM (next day)
+
+  // Determine if current time is before 07:00 AM
+  const isBeforeStart = (currentHour < startHour) || (currentHour === startHour && currentMinute < 0);
+
+  // Adjust currentDate to the previous day if before 07:00 AM
+  let adjustedDate = currentDate;
+  if (isBeforeStart) {
+    // Subtract one day from the current date
+    adjustedDate = format(addDays(zonedTime, -1), 'yyyy-MM-dd');
+  }
+
+  // Check if the current time is within the allowed time window
+  const isWithinTimeWindow = (currentHour >= startHour) || (currentHour < endHour && currentHour < 24);
+
+  if (!isWithinTimeWindow) {
+    return c.res({
+      image: (
+        <Box
+          grow
+          alignVertical="center"
+          alignHorizontal="center"
+          backgroundColor="red"
+          padding="32"
+          textAlign="center"
+          height="100%"
+        >
+          <Text align="center" weight="600" color="white" size="20">
+            Maaf, absen hanya dapat dilakukan dari pukul 07:00 pagi hingga 06:00 pagi.
+          </Text>
+        </Box>
+      ),
+      intents: [
+        <Button action='/'>
+          Kembali
+        </Button>,
+      ],
+    });
+  }
+
   try {
     const userResponse = await fetch(`${baseUrlNeynarV2}/channel/bulk?ids=moxieid&viewer_fid=${fid}`, {
       method: 'GET',
@@ -176,24 +226,26 @@ app.frame('/absen/:currentDate', async (c) => {
       });
     } 
 
-    const absen = await stack.getPoints([eth_address], { event: `${currentDate}` });
-    const amount = absen.length > 0 ? absen[0].amount : 0;
+    const absen = await stack.getPoints([eth_address], { event: `${adjustedDate}` });
 
     if (absen.length === 0) {
-      console.log(`${username} absen pada tanggal ${currentDate}`);
-      await stack.track(`${currentDate}`, {
+      console.log(`${username} absen pada tanggal ${adjustedDate}`);
+      await stack.track(`${adjustedDate}`, {
         points: 1,
         account: eth_address,
         uniqueId: eth_address
       });
-    } 
-    else {
+    } else {
       return c.error(
         {
-          message: `Kamu sudah melakukan absen pada hari ini.`,
+          message: `Kamu sudah absen hari ini, kembali lagi pada jam 7 pagi untuk absen selanjutnya`,
         }
       );
     }
+
+    const amount = await stack.getPoints(eth_address);
+
+    console.log(amount);
 
     return c.res({
       image: (
@@ -261,3 +313,4 @@ app.frame('/absen/:currentDate', async (c) => {
 
 export const GET = handle(app)
 export const POST = handle(app)
+
