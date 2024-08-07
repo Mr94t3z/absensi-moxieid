@@ -13,8 +13,8 @@ import { format, toZonedTime } from 'date-fns-tz';
 import dotenv from 'dotenv';
 
 // Uncomment this packages to tested on local server
-import { devtools } from 'frog/dev'
-import { serveStatic } from 'frog/serve-static'
+// import { devtools } from 'frog/dev'
+// import { serveStatic } from 'frog/serve-static'
 
 // Load environment variables from .env file
 dotenv.config();
@@ -56,7 +56,7 @@ export const app = new Frog({
   },
 }).use(
   neynar({
-    apiKey: 'NEYNAR_FROG_FM',
+    apiKey: process.env.NEYNAR_API_KEY || 'NEYNAR_API_DOCS',
     features: ['interactor', 'cast'],
   }),
 )
@@ -242,7 +242,7 @@ app.frame('/absen/:currentDate', async (c) => {
           height="100%"
         >
           <Text align="center" weight="600" color="white" size="20">
-            Terjadi kesalahan. Silakan coba lagi nanti.
+            Terjadi kesalahan. Silakan coba lagi.
           </Text>
         </Box>
       ),
@@ -257,7 +257,7 @@ app.frame('/absen/:currentDate', async (c) => {
 
 
 // Uncomment for local server testing
-devtools(app, { serveStatic });
+// devtools(app, { serveStatic });
 
 
 export const GET = handle(app)
