@@ -238,14 +238,12 @@ app.frame('/absen/:currentDate', async (c) => {
     } else {
       return c.error(
         {
-          message: `Kamu sudah absen hari ini, kembali lagi pada jam 7 pagi untuk absen selanjutnya`,
+          message: `Kamu sudah absen hari ini, kembali lagi pada jam 7 pagi untuk absen selanjutnya.`,
         }
       );
     }
 
     const amount = await stack.getPoints(eth_address);
-
-    console.log(amount);
 
     return c.res({
       image: (
