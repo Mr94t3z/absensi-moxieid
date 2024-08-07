@@ -177,8 +177,7 @@ app.frame('/absen/:currentDate', async (c) => {
     } 
 
     const absen = await stack.getPoints([eth_address], { event: `${currentDate}` });
-    
-    const amount = absen[0].amount;
+    const amount = absen.length > 0 ? absen[0].amount : 0;
 
     if (absen.length === 0) {
       console.log(`${username} absen pada tanggal ${currentDate}`);
