@@ -62,25 +62,13 @@ export const app = new Frog({
   }),
 )
 
-// Get the current Indonesian time (Asia/Jakarta)
-const now = new Date();
-const timeZone = 'Asia/Jakarta';
-const zonedTime = toZonedTime(now, timeZone);
-const currentDate = format(zonedTime, 'yyyy-MM-dd');
-const currentHour = zonedTime.getHours();
-const currentMinute = zonedTime.getMinutes();
-// Get the full date and time
-const fullDateTime = format(zonedTime, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
-
-// Define the start and end of the time window
-const startHour = 7; // 07:00 AM
-const endHour = 6;   // 06:00 AM (next day)
-
-// Determine if current time is before 07:00 AM
-const isBeforeStart = (currentHour < startHour) || (currentHour === startHour && currentMinute < 0);
-
 app.frame('/', (c) => {
-  console.log('fullDateTime:', fullDateTime);
+  // Get the current UTC time and convert it to Indonesian time (WIB)
+  const now = new Date();
+  const timeZone = 'Asia/Jakarta';
+  const zonedTime = toZonedTime(now, timeZone);
+  const currentDate = format(zonedTime, 'yyyy-MM-dd');
+
   return c.res({
     image: (
       <Box
@@ -126,6 +114,20 @@ app.frame('/absen/:currentDate', async (c) => {
 
   const { fid, username, verifiedAddresses } = c.var.interactor || {};
   const eth_address = verifiedAddresses?.ethAddresses[0] || '';
+
+  // Get the current Indonesian time (Asia/Jakarta)
+  const now = new Date();
+  const timeZone = 'Asia/Jakarta';
+  const zonedTime = toZonedTime(now, timeZone);
+  const currentHour = zonedTime.getHours();
+  const currentMinute = zonedTime.getMinutes();
+  
+  // Define the start and end of the time window
+  const startHour = 7; // 07:00 AM
+  const endHour = 6;   // 06:00 AM (next day)
+
+  // Determine if current time is before 07:00 AM
+  const isBeforeStart = (currentHour < startHour) || (currentHour === startHour && currentMinute < 0);
 
   // Adjust currentDate to the previous day if before 07:00 AM
   let adjustedDate = currentDate;
@@ -224,32 +226,49 @@ app.frame('/absen/:currentDate', async (c) => {
       });
     } 
 
-    const absen = await stack.getPoints([eth_address], { event: `Tanggal ${adjustedDate}` });
+    const absen = await stack.getPoints([eth_address], { event: `${adjustedDate}` });
 
     if (absen.length === 0) {
       console.log(`${username} absen pada tanggal ${adjustedDate}`);
-      try {
-        await stack.track(`Tanggal ${adjustedDate}`, {
-          points: 1,
-          account: eth_address,
-          uniqueId: eth_address
-        });
-      } catch (trackError) {
-        console.error(`Error tracking attendance for ${username} on ${adjustedDate}:`, trackError);
-        return c.error({
-          message: `Terjadi kesalahan saat mencatat absen. Silakan coba lagi.`,
-        });
-      }
-    } else {
-      return c.error({
-        message: `Kamu sudah absen hari ini, kembali lagi pada jam 7 pagi untuk absen selanjutnya.`,
+      await stack.track(`${adjustedDate}`, {
+        points: 1,
+        account: eth_address,
+        uniqueId: eth_address
       });
+    } else {
+      return c.error(
+        {
+          message: `Kamu sudah absen hari ini, kembali lagi pada jam 7 pagi untuk absen selanjutnya.`,
+        }
+      );
     }
 
     const amount = await stack.getPoints(eth_address);
 
     return c.res({
-      image: `/image-absen/${username}/${amount}`,
+      image: (
+        <Box
+          grow
+          alignVertical="center"
+          alignHorizontal="center"
+          backgroundColor="red"
+          padding="32"
+          textAlign="center"
+          height="100%"
+        >
+
+          <Text align="center" weight="600" color="white" size="24">
+            Terimakasih @{username}!
+          </Text>
+
+          <Spacer size="18" />
+
+          <Text align="center" weight="600" color="white" size="24">
+            Kamu telah absen {amount} Hari.
+          </Text>
+
+        </Box>
+      ),
       intents: [
         <Button.Link href={PUBLIC_URL_MOXIE_ID_LEADERBOARD}>
           Catatan Absen
@@ -286,43 +305,9 @@ app.frame('/absen/:currentDate', async (c) => {
 });
 
 
-app.image('/image-absen/:username/:amount', (c) => {
-  const { username, amount } = c.req.param();
-
-  return c.res({
-    headers: {
-      'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate max-age=0, s-maxage=0',
-    },
-    image: (
-      <Box
-        grow
-        alignVertical="center"
-        alignHorizontal="center"
-        backgroundColor="red"
-        padding="32"
-        textAlign="center"
-        height="100%"
-      >
-
-        <Text align="center" weight="600" color="white" size="24">
-          Terimakasih @{username}!
-        </Text>
-
-        <Spacer size="18" />
-
-        <Text align="center" weight="600" color="white" size="24">
-          Kamu telah absen {amount} Hari.
-        </Text>
-
-      </Box>
-    ),
-  });
-});
-
 // Uncomment for local server testing
 // devtools(app, { serveStatic });
 
 
 export const GET = handle(app)
 export const POST = handle(app)
-
