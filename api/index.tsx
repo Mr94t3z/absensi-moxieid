@@ -63,7 +63,7 @@ export const app = new Frog({
   },
 }).use(
   neynar({
-    apiKey: process.env.NEYNAR_API_KEY || 'NEYNAR_API_DOCS',
+    apiKey: process.env.NEYNAR_API_KEY || 'NEYNAR_FROG_FM',
     features: ['interactor', 'cast'],
   }),
 )
@@ -168,7 +168,7 @@ app.frame('/absen', async (c) => {
       method: 'GET',
       headers: {
         'accept': 'application/json',
-        'api_key': process.env.NEYNAR_API_KEY || 'NEYNAR_API_DOCS',
+        'api_key': process.env.NEYNAR_API_KEY || 'NEYNAR_FROG_FM',
       },
     });
 
