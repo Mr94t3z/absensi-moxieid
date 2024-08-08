@@ -226,7 +226,10 @@ app.frame('/absen/:currentDate', async (c) => {
       });
     } 
 
-    const absen = await stack.getPoints([eth_address], { event: `${adjustedDate}` });
+    const absen = await stack.getPoints([eth_address], { event: `${currentDate}` });
+
+    console.log('currentDate', currentDate);
+    console.log('adjustedDate', adjustedDate);
 
     if (absen.length === 0) {
       console.log(`${username} absen pada tanggal ${adjustedDate}`);
