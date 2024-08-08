@@ -69,6 +69,8 @@ const zonedTime = toZonedTime(now, timeZone);
 const currentDate = format(zonedTime, 'yyyy-MM-dd');
 const currentHour = zonedTime.getHours();
 const currentMinute = zonedTime.getMinutes();
+// Get the full date and time
+const fullDateTime = format(zonedTime, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
 
 // Define the start and end of the time window
 const startHour = 7; // 07:00 AM
@@ -78,6 +80,7 @@ const endHour = 6;   // 06:00 AM (next day)
 const isBeforeStart = (currentHour < startHour) || (currentHour === startHour && currentMinute < 0);
 
 app.frame('/', (c) => {
+  console.log('fullDateTime:', fullDateTime);
   return c.res({
     image: (
       <Box
