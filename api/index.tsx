@@ -69,12 +69,6 @@ export const app = new Frog({
 )
 
 app.frame('/', (c) => {
-  // Get the current UTC time and convert it to Indonesian time (WIB)
-  const now = new Date();
-  const timeZone = 'Asia/Jakarta';
-  const zonedTime = toZonedTime(now, timeZone);
-  const currentDate = format(zonedTime, 'yyyy-MM-dd');
-
   return c.res({
     image: (
       <Box
@@ -107,7 +101,7 @@ app.frame('/', (c) => {
       </Box>
     ),
     intents: [
-      <Button action={`/absen/${currentDate}`}>
+      <Button action='/absen'>
         Absen
       </Button>,
     ],
@@ -115,9 +109,7 @@ app.frame('/', (c) => {
 });
 
 
-app.frame('/absen/:currentDate', async (c) => {
-  const { currentDate } = c.req.param();
-
+app.frame('/absen', async (c) => {
   const { fid, username, verifiedAddresses } = c.var.interactor || {};
   const eth_address = verifiedAddresses?.ethAddresses[0] || '';
 
@@ -125,6 +117,7 @@ app.frame('/absen/:currentDate', async (c) => {
   const now = new Date();
   const timeZone = 'Asia/Jakarta';
   const zonedTime = toZonedTime(now, timeZone);
+  const currentDate = format(zonedTime, 'yyyy-MM-dd');
   const currentHour = zonedTime.getHours();
   const currentMinute = zonedTime.getMinutes();
   
