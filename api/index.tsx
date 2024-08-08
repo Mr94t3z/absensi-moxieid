@@ -26,6 +26,12 @@ const stack = new StackClient({
   pointSystemId: parseInt(process.env.STACK_POINT_SYSTEM_ID || ''),
 });
 
+// Moxie ID Telegram URL
+const PUBLIC_URL_TELEGRAM_MOXIE_ID = 'https://t.me/+0eqA7sxCNKE2Yjg1';
+
+// Moxie ID GitBook URL
+const PUBLIC_URL_GITBOOK_MOXIE_ID = 'https://moxieid.gitbook.io/moxieid';
+
 // stack.so leaderboard URL
 const PUBLIC_URL_MOXIE_ID_LEADERBOARD = 'https://www.stack.so/leaderboard/catatan-absensi-moxieid';
 
@@ -270,6 +276,12 @@ app.frame('/absen/:currentDate', async (c) => {
         </Box>
       ),
       intents: [
+        <Button.Link href={PUBLIC_URL_TELEGRAM_MOXIE_ID}>
+          Telegram
+        </Button.Link>,
+        <Button.Link href={PUBLIC_URL_GITBOOK_MOXIE_ID}>
+          GitBook
+        </Button.Link>,
         <Button.Link href={PUBLIC_URL_MOXIE_ID_LEADERBOARD}>
           Catatan Absen
         </Button.Link>,
